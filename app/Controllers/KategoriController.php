@@ -5,6 +5,9 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\KategoriModel;
 use CodeIgniter\HTTP\ResponseInterface;
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Exception;
 
 class KategoriController extends BaseController
@@ -123,6 +126,53 @@ class KategoriController extends BaseController
             return redirect()->to('/kategori')->with('success', 'Data berhasil dihapus!');
         } catch (\Exception $e) {
             return $e->getMessage();
+        }
+    }
+
+    public function export()
+    {
+        try {
+            $kategori = $this->kategori->get_excel()->getResult();
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setCellValue('A1', 'No.');
+            $sheet->setCellValue('B1', 'Kategori');
+            $sheet->setCellValue('C1', 'Keterangan');
+            $row = 2;
+            foreach ($kategori as $key => $value) {
+                $sheet->setCellValue('A' . $row, ($row - 1));
+                $sheet->setCellValue('B' . $row, $value->kategori);
+                $sheet->setCellValue('C' . $row, $value->keterangan);
+                $row++;
+            }
+            $styleArray = [
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' =>
+                        \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => 'FF000000'],
+                    ],
+                ],
+            ];
+            $sheet->getStyle('A1:C' . ($row - 1))->applyFromArray($styleArray);
+            $sheet->getStyle('A1:C1')->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FFFFFF00');
+            $sheet->getStyle('A1:C1')->getFont()->setBold(true);
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->getColumnDimension('C')->setAutoSize(true);
+
+            $writer = new Xlsx($spreadsheet);
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+            header('Content-Disposition: attachment;filename=DataKategori-' . date('dmy') . '.xlsx');
+            header('Cache-Control: max-age=0');
+            $writer->save('php://output');
+            exit();
+        } catch (\Throwable $e) {
+            echo 'Error: ' . $e->getMessage();
         }
     }
 }

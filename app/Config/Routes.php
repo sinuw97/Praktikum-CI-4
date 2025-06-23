@@ -16,3 +16,5 @@ $routes->get('/kategori/(:num)', 'KategoriController::showKategoriById/$1');
 $routes->patch('/kategori/update/(:num)', 'KategoriController::updateKategori/$1');
 // DELETE
 $routes->delete('/kategori/delete/(:num)', 'KategoriController::deleteKategori/$1');
+// EXCEL
+$routes->get('/kategori/export', 'KategoriController::export');

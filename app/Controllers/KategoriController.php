@@ -23,8 +23,7 @@ class KategoriController extends BaseController
         try {
             $data['kategori'] = $this->kategori->findAll();
             return view('kategori/index', $data);
-        } catch (\Exception $e) {
-            // debugging
+        } catch (\Throwable $e) {
             return $e->getMessage();
         }
     }
@@ -128,7 +127,6 @@ class KategoriController extends BaseController
             return $e->getMessage();
         }
     }
-
     public function export()
     {
         try {
